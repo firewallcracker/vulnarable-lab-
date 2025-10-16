@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IDOR Challenge - User Profiles</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .container { background: #f9f9f9; padding: 30px; border-radius: 8px; }
+        .profile { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; border: 1px solid #ddd; }
+        .user-list { background: white; padding: 15px; margin: 10px 0; border-radius: 4px; border: 1px solid #ddd; }
+        .user-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .user-item:hover { background: #f0f0f0; }
+        .hint { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; margin-top: 20px; padding: 15px; border-radius: 4px; }
+        input { width: 200px; padding: 10px; margin: 10px 5px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        .admin { border-left: 5px solid #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👤 User Profile System - IDOR Challenge</h1>
+        <p>You are logged in as: <strong>user3</strong> (ID: 3)</p>
+        
+        <h3>Your Profile:</h3>
+        <div class="profile">
+            <h4>User #3 - john_doe</h4>
+            <p><strong>Email:</strong> john@example.com</p>
+            <p><strong>Role:</strong> User</p>
+            <p><strong>Secret:</strong> Your personal data</p>
+        </div>
+        
+        <h3>View Other User Profile:</h3>
+        <input type="number" id="userId" placeholder="User ID" value="3">
+        <button onclick="viewProfile()">View Profile</button>
+        
+        <div id="profileResult"></div>
+        
+        <div class="hint">
+            <h3>💡 Hints:</h3>
+            <ul>
+                <li><strong>Beginner:</strong> Try changing the User ID to 1, 2, 4, or 5</li>
+                <li><strong>Intermediate:</strong> Look for admin users (ID 1 or 2)</li>
+                <li><strong>Advanced:</strong> Admin profiles contain the flag</li>
+            </ul>
+        </div>
+        
+        <div class="hint">
+            <h3>🎯 Objective:</h3>
+            <p>Access unauthorized user profiles to find the flag. Look for admin accounts!</p>
+        </div>
+    </div>
+
+    <script>
+        const flag = 'SKILLLAB{1d0r_vuln3r4b1l1ty}';
+        
+        const users = {
+            1: {
+                id: 1,
+                username: 'admin',
+                email: 'admin@company.com',
+                role: 'Administrator',
+                secret: `Admin access granted! Flag: ${flag}`,
+                isAdmin: true
+            },
+            2: {
+                id: 2,
+                username: 'superuser',
+                email: 'super@company.com',
+                role: 'Super Admin',
+                secret: `Super admin privileges! Flag: ${flag}`,
+                isAdmin: true
+            },
+            3: {
+                id: 3,
+                username: 'john_doe',
+                email: 'john@example.com',
+                role: 'User',
+                secret: 'Your personal data',
+                isAdmin: false
+            },
+            4: {
+                id: 4,
+                username: 'jane_smith',
+                email: 'jane@example.com',
+                role: 'User',
+                secret: 'Jane\'s private information',
+                isAdmin: false
+            },
+            5: {
+                id: 5,
+                username: 'bob_wilson',
+                email: 'bob@example.com',
+                role: 'User',
+                secret: 'Bob\'s confidential data',
+                isAdmin: false
+            }
+        };
+        
+        function viewProfile() {
+            const userId = parseInt(document.getElementById('userId').value);
+            const resultDiv = document.getElementById('profileResult');
+            
+            // VULNERABLE: No authorization check - any user can view any profile
+            if (users[userId]) {
+                const user = users[userId];
+                const adminClass = user.isAdmin ? ' admin' : '';
+                
+                resultDiv.innerHTML = `
+                    <div class="profile${adminClass}">
+                        <h4>User #${user.id} - ${user.username}</h4>
+                        <p><strong>Email:</strong> ${user.email}</p>
+                        <p><strong>Role:</strong> ${user.role}</p>
+                        <p><strong>Secret:</strong> ${user.secret}</p>
+                        ${user.isAdmin ? '<p style="color: red;"><strong>⚠️ ADMIN ACCOUNT ACCESSED!</strong></p>' : ''}
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="profile">
+                        <p style="color: red;">User not found with ID: ${userId}</p>
+                        <p>Try IDs 1-5</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Load current user profile by default
+        viewProfile();
+    </script>
+</body>
+</html>

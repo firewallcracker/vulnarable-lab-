@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: skilllab
+      POSTGRES_USER: skilllab
+      POSTGRES_PASSWORD: skilllab123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - skilllab-network
+
+  backend:
+    build: ./backend
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://skilllab:skilllab123@db:5432/skilllab
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      DOCKER_HOST: unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - db
+    networks:
+      - skilllab-network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_API_URL: http://localhost:3001
+    depends_on:
+      - backend
+    networks:
+      - skilllab-network
+
+networks:
+  skilllab-network:
+    driver: bridge
+  challenge-network:
+    driver: bridge
+    internal: true
+
+volumes:
+  postgres_data:

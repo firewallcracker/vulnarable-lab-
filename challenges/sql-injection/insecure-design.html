@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>A04: Insecure Design</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .container { background: #f9f9f9; padding: 30px; border-radius: 8px; }
+        .security-question { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; border: 1px solid #ddd; }
+        button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .hint { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .message { padding: 15px; margin: 15px 0; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏗️ A04: Insecure Design</h1>
+        <p>Password Recovery System</p>
+        
+        <div class="security-question">
+            <h3>Step 1: Enter Username</h3>
+            <input type="text" id="username" placeholder="Username" value="admin">
+            <button onclick="getSecurityQuestion()">Get Security Question</button>
+        </div>
+        
+        <div id="questionPanel" class="security-question" style="display: none;">
+            <h3>Step 2: Security Question</h3>
+            <p id="securityQuestion"></p>
+            <input type="text" id="answer" placeholder="Your answer">
+            <button onclick="verifyAnswer()">Submit Answer</button>
+        </div>
+        
+        <div id="result"></div>
+        
+        <div class="hint">
+            <h3>💡 Hints:</h3>
+            <ul>
+                <li><strong>Beginner:</strong> Try username "admin" and look at the security question</li>
+                <li><strong>Intermediate:</strong> The security question might have a predictable answer</li>
+                <li><strong>Advanced:</strong> Think about what information is easily guessable</li>
+            </ul>
+        </div>
+        
+        <div class="hint">
+            <h3>🎯 Objective:</h3>
+            <p>Exploit the flawed password recovery design to access the admin account.</p>
+        </div>
+    </div>
+
+    <script>
+        const flag = 'SKILLLAB{1ns3cur3_d3s1gn_fl4w}';
+        
+        // VULNERABLE: Predictable security questions and answers
+        const securityQuestions = {
+            'admin': {
+                question: 'What is 2 + 2?',
+                answer: '4'
+            },
+            'user': {
+                question: 'What color is the sky?',
+                answer: 'blue'
+            },
+            'guest': {
+                question: 'What is the first letter of the alphabet?',
+                answer: 'a'
+            }
+        };
+        
+        function getSecurityQuestion() {
+            const username = document.getElementById('username').value.toLowerCase();
+            const questionPanel = document.getElementById('questionPanel');
+            const questionElement = document.getElementById('securityQuestion');
+            
+            if (securityQuestions[username]) {
+                questionElement.textContent = securityQuestions[username].question;
+                questionPanel.style.display = 'block';
+                showMessage('Security question loaded. Answer to reset password.', 'success');
+            } else {
+                showMessage('Username not found.', 'error');
+            }
+        }
+        
+        function verifyAnswer() {
+            const username = document.getElementById('username').value.toLowerCase();
+            const answer = document.getElementById('answer').value.toLowerCase();
+            
+            if (securityQuestions[username] && securityQuestions[username].answer === answer) {
+                if (username === 'admin') {
+                    showMessage(`Password reset successful! New temporary password: ${flag}`, 'success');
+                } else {
+                    showMessage('Password reset successful! New temporary password: temp123', 'success');
+                }
+            } else {
+                showMessage('Incorrect answer. Please try again.', 'error');
+            }
+        }
+        
+        function showMessage(text, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = text;
+            resultDiv.className = `message ${type}`;
+        }
+        
+        // VULNERABLE: Exposed in comments
+        /*
+        TODO: Improve security questions
+        Current questions are too easy:
+        - admin: 2+2=4 (everyone knows this!)
+        - user: sky=blue (obvious)
+        - guest: first letter=a (too simple)
+        
+        Flag for testing: SKILLLAB{1ns3cur3_d3s1gn_fl4w}
+        */
+    </script>
+</body>
+</html>

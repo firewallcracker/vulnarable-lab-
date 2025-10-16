@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>A01: Broken Access Control</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .container { background: #f9f9f9; padding: 30px; border-radius: 8px; }
+        .user-panel { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; border: 1px solid #ddd; }
+        .admin-panel { background: #ffe6e6; border: 2px solid #ff4444; }
+        button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .hint { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 A01: Broken Access Control</h1>
+        <p>You are logged in as: <strong>regular_user</strong></p>
+        
+        <div class="user-panel">
+            <h3>User Panel</h3>
+            <p>Welcome! You have access to basic features.</p>
+            <button onclick="viewProfile()">View Profile</button>
+            <button onclick="changePassword()">Change Password</button>
+        </div>
+        
+        <div id="adminPanel" class="user-panel admin-panel hidden">
+            <h3>🚨 Admin Panel</h3>
+            <p>Administrative access granted!</p>
+            <p><strong>Flag:</strong> SKILLLAB{br0k3n_4cc3ss_c0ntr0l}</p>
+            <button onclick="manageUsers()">Manage Users</button>
+            <button onclick="viewLogs()">View System Logs</button>
+        </div>
+        
+        <div class="hint">
+            <h3>💡 Hints:</h3>
+            <ul>
+                <li><strong>Beginner:</strong> Check the browser's developer tools (F12)</li>
+                <li><strong>Intermediate:</strong> Look for hidden elements or JavaScript functions</li>
+                <li><strong>Advanced:</strong> Try calling <code>showAdminPanel()</code> in the console</li>
+            </ul>
+        </div>
+        
+        <div class="hint">
+            <h3>🎯 Objective:</h3>
+            <p>Access the admin panel without proper authorization. The flag is hidden in the admin section!</p>
+        </div>
+    </div>
+
+    <script>
+        function viewProfile() {
+            alert('Profile: regular_user\\nRole: User\\nPermissions: Read-only');
+        }
+        
+        function changePassword() {
+            alert('Password change functionality - User level access');
+        }
+        
+        // VULNERABLE: Admin function accessible to all users
+        function showAdminPanel() {
+            document.getElementById('adminPanel').classList.remove('hidden');
+        }
+        
+        function manageUsers() {
+            alert('User management system accessed!');
+        }
+        
+        function viewLogs() {
+            alert('System logs: Admin access detected - Flag captured!');
+        }
+        
+        // Simulate access control bypass
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+                showAdminPanel();
+            }
+        });
+    </script>
+</body>
+</html>

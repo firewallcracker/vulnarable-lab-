@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Command Injection Challenge</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .container { background: #f9f9f9; padding: 30px; border-radius: 8px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007cba; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
+        .hint { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .output { background: #000; color: #0f0; padding: 15px; margin: 20px 0; border-radius: 4px; font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖥️ Network Ping Tool - Command Injection</h1>
+        <p>Enter an IP address or hostname to ping:</p>
+        
+        <form id="pingForm">
+            <input type="text" id="target" placeholder="127.0.0.1" required>
+            <button type="submit">Ping</button>
+        </form>
+        
+        <div id="output" class="output" style="display: none;"></div>
+        
+        <div class="hint">
+            <h3>💡 Hints:</h3>
+            <ul>
+                <li><strong>Beginner:</strong> Try: <code>127.0.0.1; ls</code></li>
+                <li><strong>Intermediate:</strong> Use command separators like <code>;</code> or <code>&&</code></li>
+                <li><strong>Advanced:</strong> Try: <code>127.0.0.1; cat flag.txt</code></li>
+            </ul>
+        </div>
+        
+        <div class="hint">
+            <h3>🎯 Objective:</h3>
+            <p>Execute additional commands to find and read the flag file. The flag format is: SKILLLAB{...}</p>
+        </div>
+    </div>
+
+    <script>
+        const flag = 'SKILLLAB{c0mm4nd_1nj3ct10n_pwn}';
+        
+        document.getElementById('pingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const target = document.getElementById('target').value;
+            const outputDiv = document.getElementById('output');
+            
+            let output = `$ ping ${target}\n`;
+            
+            // Simulate command injection vulnerability
+            if (target.includes(';') || target.includes('&&') || target.includes('|')) {
+                const commands = target.split(/[;&|]+/);
+                
+                commands.forEach(cmd => {
+                    cmd = cmd.trim();
+                    if (cmd.includes('ls') || cmd.includes('dir')) {
+                        output += `index.html\nflag.txt\nconfig.php\n`;
+                    } else if (cmd.includes('cat flag') || cmd.includes('type flag')) {
+                        output += `${flag}\n`;
+                    } else if (cmd.includes('whoami')) {
+                        output += `www-data\n`;
+                    } else if (cmd.includes('pwd')) {
+                        output += `/var/www/html\n`;
+                    } else if (cmd.match(/^\d+\.\d+\.\d+\.\d+$/) || cmd.includes('localhost')) {
+                        output += `PING ${cmd}: 56 data bytes\n64 bytes from ${cmd}: time=0.1ms\n--- ping statistics ---\n1 packets transmitted, 1 received, 0% packet loss\n`;
+                    }
+                });
+            } else {
+                // Normal ping
+                if (target.match(/^\d+\.\d+\.\d+\.\d+$/) || target.includes('localhost') || target.includes('.com')) {
+                    output += `PING ${target}: 56 data bytes\n64 bytes from ${target}: time=0.1ms\n--- ping statistics ---\n1 packets transmitted, 1 received, 0% packet loss\n`;
+                } else {
+                    output += `ping: cannot resolve ${target}: Unknown host\n`;
+                }
+            }
+            
+            outputDiv.textContent = output;
+            outputDiv.style.display = 'block';
+        });
+    </script>
+</body>
+</html>

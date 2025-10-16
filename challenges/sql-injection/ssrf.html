@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html><head><title>A10: Server-Side Request Forgery</title><style>body{font-family:Arial,sans-serif;max-width:600px;margin:50px auto;padding:20px}.container{background:#f9f9f9;padding:30px;border-radius:8px}.url-panel{background:white;padding:20px;margin:15px 0;border-radius:8px;border:1px solid #ddd}button{background:#007cba;color:white;padding:10px 20px;border:none;border-radius:4px;cursor:pointer;margin:5px}.hint{background:#fff3cd;color:#856404;border:1px solid #ffeaa7;margin-top:20px;padding:15px;border-radius:4px}.response{background:#000;color:#0f0;padding:15px;margin:15px 0;border-radius:4px;font-family:monospace;font-size:12px}input{width:100%;padding:10px;margin:10px 0;border:1px solid #ddd;border-radius:4px;box-sizing:border-box}</style></head><body><div class="container"><h1>🌐 A10: Server-Side Request Forgery</h1><p>URL Fetcher Service</p><div class="url-panel"><h3>Fetch External Content</h3><input type="text" id="targetUrl" placeholder="Enter URL to fetch..." value="https://httpbin.org/get"><button onclick="fetchUrl()">Fetch URL</button><button onclick="fetchInternal()">Fetch Internal Service</button></div><div id="response" class="response" style="display:none;"></div><div class="hint"><h3>💡 Hints:</h3><ul><li><strong>Beginner:</strong> Try fetching internal URLs like localhost or 127.0.0.1</li><li><strong>Intermediate:</strong> Look for internal services on different ports</li><li><strong>Advanced:</strong> Try: http://localhost:8080/admin or http://127.0.0.1:3000/flag</li></ul></div><div class="hint"><h3>🎯 Objective:</h3><p>Use SSRF to access internal services and find the flag.</p></div></div><script>const flag='SKILLLAB{ssrf_1nt3rn4l_4cc3ss}';function fetchUrl(){const url=document.getElementById('targetUrl').value;const responseDiv=document.getElementById('response');if(url.includes('localhost')||url.includes('127.0.0.1')){if(url.includes(':8080/admin')){responseDiv.innerHTML=`<strong>Internal Admin Service Response:</strong>
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "service": "Internal Admin Panel",
+  "status": "accessible",
+  "flag": "${flag}",
+  "warning": "This should not be accessible externally!"
+}
+
+⚠️ SSRF Successful! Internal service accessed.`}else if(url.includes(':3000/flag')){responseDiv.innerHTML=`<strong>Internal Flag Service Response:</strong>
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+
+Flag: ${flag}
+Service: Internal Flag Repository
+Access: Unauthorized (SSRF vulnerability exploited)`}else{responseDiv.innerHTML=`<strong>Internal Service Response:</strong>
+
+HTTP/1.1 200 OK
+Content-Type: text/html
+
+Internal service detected.
+Try accessing:
+- http://localhost:8080/admin
+- http://127.0.0.1:3000/flag`}}else{responseDiv.innerHTML=`<strong>External URL Response:</strong>
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "message": "External service response",
+  "url": "${url}",
+  "note": "Try internal URLs for SSRF exploitation"
+}`}responseDiv.style.display='block'}function fetchInternal(){document.getElementById('targetUrl').value='http://localhost:8080/admin';fetchUrl()}</script></body></html>

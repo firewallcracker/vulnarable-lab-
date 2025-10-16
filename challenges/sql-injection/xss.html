@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>XSS Challenge - Reflected XSS</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .container { background: #f9f9f9; padding: 30px; border-radius: 8px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007cba; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
+        .hint { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .result { padding: 15px; margin: 20px 0; border-radius: 4px; background: #e7f3ff; border: 1px solid #b3d9ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Search Engine - XSS Challenge</h1>
+        <p>Search for anything! Your search term will be displayed below.</p>
+        
+        <form id="searchForm">
+            <input type="text" id="searchTerm" placeholder="Enter search term..." required>
+            <button type="submit">Search</button>
+        </form>
+        
+        <div id="results" class="result" style="display: none;">
+            <h3>Search Results for: <span id="searchDisplay"></span></h3>
+            <p>No results found for your search.</p>
+        </div>
+        
+        <div class="hint">
+            <h3>💡 Hints:</h3>
+            <ul>
+                <li><strong>Beginner:</strong> Try searching for: <code>&lt;script&gt;alert('XSS')&lt;/script&gt;</code></li>
+                <li><strong>Intermediate:</strong> The flag appears when you execute JavaScript successfully</li>
+                <li><strong>Advanced:</strong> Try: <code>&lt;img src=x onerror="alert('SKILLLAB{xss_r3fl3ct3d_attack}')"&gt;</code></li>
+            </ul>
+        </div>
+        
+        <div class="hint">
+            <h3>🎯 Objective:</h3>
+            <p>Execute JavaScript code to get the flag. The flag format is: SKILLLAB{...}</p>
+        </div>
+    </div>
+
+    <script>
+        const flag = 'SKILLLAB{xss_r3fl3ct3d_attack}';
+        
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const searchTerm = document.getElementById('searchTerm').value;
+            const resultsDiv = document.getElementById('results');
+            const searchDisplay = document.getElementById('searchDisplay');
+            
+            // VULNERABLE: Directly inserting user input into DOM
+            searchDisplay.innerHTML = searchTerm;
+            resultsDiv.style.display = 'block';
+            
+            // Check if XSS was successful (script tags or event handlers)
+            if (searchTerm.toLowerCase().includes('<script>') || 
+                searchTerm.toLowerCase().includes('onerror') ||
+                searchTerm.toLowerCase().includes('onload') ||
+                searchTerm.toLowerCase().includes('onclick')) {
+                
+                // Simulate XSS success by showing flag
+                setTimeout(() => {
+                    alert(`XSS Successful! Flag: ${flag}`);
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>

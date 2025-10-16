@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html><head><title>A08: Software Integrity Failures</title><style>body{font-family:Arial,sans-serif;max-width:600px;margin:50px auto;padding:20px}.container{background:#f9f9f9;padding:30px;border-radius:8px}.update-panel{background:white;padding:20px;margin:15px 0;border-radius:8px;border:1px solid #ddd}button{background:#007cba;color:white;padding:10px 20px;border:none;border-radius:4px;cursor:pointer;margin:5px}.hint{background:#fff3cd;color:#856404;border:1px solid #ffeaa7;margin-top:20px;padding:15px;border-radius:4px}.code{background:#000;color:#0f0;padding:15px;margin:15px 0;border-radius:4px;font-family:monospace}</style></head><body><div class="container"><h1>🔧 A08: Software Integrity Failures</h1><p>Software Update System</p><div class="update-panel"><h3>Available Updates</h3><p>Current Version: 1.0.0</p><p>Latest Version: 1.2.3</p><button onclick="checkUpdates()">Check for Updates</button><button onclick="downloadUpdate()">Download Update</button></div><div id="updateCode" class="code" style="display:none;"></div><div class="hint"><h3>💡 Hints:</h3><ul><li><strong>Beginner:</strong> Check what happens when you download updates</li><li><strong>Intermediate:</strong> Look for integrity verification issues</li><li><strong>Advanced:</strong> Updates might contain malicious code</li></ul></div><div class="hint"><h3>🎯 Objective:</h3><p>Find integrity failures in the software update process.</p></div></div><script>const flag='SKILLLAB{1nt3gr1ty_f41lur3_pwn}';function checkUpdates(){alert('Update available: v1.2.3\\nSize: 2.5MB\\nChecksum: abc123 (WARNING: No signature verification!)')}function downloadUpdate(){const code=document.getElementById('updateCode');code.innerHTML=`<strong>Update Downloaded!</strong>
+
+WARNING: No integrity verification performed!
+
+Update package contents:
+- app.js (modified)
+- config.json (new)
+- malicious_payload.js (SUSPICIOUS!)
+
+Malicious code detected:
+function backdoor() {
+    // Unauthorized access granted
+    return "${flag}";
+}
+
+⚠️ This update has not been cryptographically signed!
+⚠️ No checksum verification performed!
+⚠️ Potential supply chain attack detected!`;code.style.display='block'}</script></body></html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>A02: Cryptographic Failures</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .container { background: #f9f9f9; padding: 30px; border-radius: 8px; }
+        .encrypted-data { background: #000; color: #0f0; padding: 15px; margin: 20px 0; border-radius: 4px; font-family: monospace; word-break: break-all; }
+        button { background: #007cba; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .hint { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .result { background: white; padding: 15px; margin: 15px 0; border-radius: 4px; border: 1px solid #ddd; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 A02: Cryptographic Failures</h1>
+        <p>Secure data transmission system with encrypted messages.</p>
+        
+        <h3>Encrypted Secret Message:</h3>
+        <div class="encrypted-data" id="encryptedMessage">
+            U0tJTExMQUJ7Y3I3cHQwX2Y0MWx1cjNzX3B3bjNkfQ==
+        </div>
+        
+        <h3>Decryption Tools:</h3>
+        <button onclick="tryBase64()">Try Base64 Decode</button>
+        <button onclick="tryROT13()">Try ROT13</button>
+        <button onclick="tryCaesar()">Try Caesar Cipher</button>
+        <button onclick="tryHex()">Try Hex Decode</button>
+        
+        <h3>Custom Decoder:</h3>
+        <input type="text" id="customInput" placeholder="Enter encrypted text to decode...">
+        <button onclick="customDecode()">Decode</button>
+        
+        <div id="result" class="result" style="display: none;"></div>
+        
+        <div class="hint">
+            <h3>💡 Hints:</h3>
+            <ul>
+                <li><strong>Beginner:</strong> The message looks like Base64 encoding</li>
+                <li><strong>Intermediate:</strong> Base64 strings often end with = or ==</li>
+                <li><strong>Advanced:</strong> Try decoding the encrypted message above</li>
+            </ul>
+        </div>
+        
+        <div class="hint">
+            <h3>🎯 Objective:</h3>
+            <p>Decrypt the secret message to reveal the flag. Look for weak encryption methods!</p>
+        </div>
+    </div>
+
+    <script>
+        const flag = 'SKILLLAB{cr7pt0_f41lur3s_pwn3d}';
+        
+        function tryBase64() {
+            const encrypted = document.getElementById('encryptedMessage').textContent.trim();
+            try {
+                const decoded = atob(encrypted);
+                showResult(`Base64 Decoded: ${decoded}`);
+            } catch (e) {
+                showResult('Base64 decode failed');
+            }
+        }
+        
+        function tryROT13() {
+            const encrypted = document.getElementById('encryptedMessage').textContent.trim();
+            const decoded = encrypted.replace(/[a-zA-Z]/g, function(c) {
+                return String.fromCharCode((c <= 'Z' ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+            });
+            showResult(`ROT13 Decoded: ${decoded}`);
+        }
+        
+        function tryCaesar() {
+            showResult('Caesar cipher decode: Try different shift values (1-25)');
+        }
+        
+        function tryHex() {
+            const encrypted = document.getElementById('encryptedMessage').textContent.trim();
+            try {
+                const decoded = encrypted.match(/.{1,2}/g).map(byte => String.fromCharCode(parseInt(byte, 16))).join('');
+                showResult(`Hex Decoded: ${decoded}`);
+            } catch (e) {
+                showResult('Hex decode failed - not valid hex');
+            }
+        }
+        
+        function customDecode() {
+            const input = document.getElementById('customInput').value.trim();
+            if (!input) {
+                showResult('Please enter text to decode');
+                return;
+            }
+            
+            // Try Base64 first
+            try {
+                const decoded = atob(input);
+                showResult(`Custom Base64 Decoded: ${decoded}`);
+                return;
+            } catch (e) {}
+            
+            // Try ROT13
+            const rot13 = input.replace(/[a-zA-Z]/g, function(c) {
+                return String.fromCharCode((c <= 'Z' ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+            });
+            showResult(`Custom ROT13 Decoded: ${rot13}`);
+        }
+        
+        function showResult(text) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = text;
+            resultDiv.style.display = 'block';
+        }
+        
+        // Additional weak crypto examples
+        const weakExamples = {
+            'password123': btoa('SKILLLAB{weak_crypto_example}'),
+            'admin': btoa('Another weak example'),
+            'secret': btoa(flag)
+        };
+    </script>
+</body>
+</html>

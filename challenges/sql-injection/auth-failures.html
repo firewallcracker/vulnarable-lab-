@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>A07: Authentication Failures</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .container { background: #f9f9f9; padding: 30px; border-radius: 8px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007cba; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin: 5px 0; }
+        .hint { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .message { padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .attempts { background: #fff3cd; padding: 10px; margin: 10px 0; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔑 A07: Authentication Failures</h1>
+        <p>Secure login system with multiple authentication methods.</p>
+        
+        <div id="loginAttempts" class="attempts">Login attempts: <span id="attemptCount">0</span>/3</div>
+        
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        
+        <button onclick="forgotPassword()">Forgot Password?</button>
+        <button onclick="resetAccount()">Reset Account</button>
+        
+        <div id="message"></div>
+        
+        <div class="hint">
+            <h3>💡 Hints:</h3>
+            <ul>
+                <li><strong>Beginner:</strong> Try common passwords: admin, password, 123456</li>
+                <li><strong>Intermediate:</strong> Check what happens after 3 failed attempts</li>
+                <li><strong>Advanced:</strong> Look for password reset vulnerabilities</li>
+            </ul>
+        </div>
+        
+        <div class="hint">
+            <h3>🎯 Objective:</h3>
+            <p>Bypass authentication to access the admin account. Username: admin</p>
+        </div>
+    </div>
+
+    <script>
+        const flag = 'SKILLLAB{4uth3nt1c4t10n_byp4ss}';
+        let attempts = 0;
+        let isLocked = false;
+        
+        const commonPasswords = ['admin', 'password', '123456', 'admin123', 'root'];
+        
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (isLocked) {
+                showMessage('Account is locked. Try password reset.', 'error');
+                return;
+            }
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            attempts++;
+            document.getElementById('attemptCount').textContent = attempts;
+            
+            // VULNERABLE: Weak password policy
+            if (username === 'admin' && commonPasswords.includes(password.toLowerCase())) {
+                showMessage(`Login successful! Flag: ${flag}`, 'success');
+                return;
+            }
+            
+            if (attempts >= 3) {
+                isLocked = true;
+                showMessage('Account locked after 3 failed attempts. Use password reset.', 'error');
+            } else {
+                showMessage(`Invalid credentials. ${3-attempts} attempts remaining.`, 'error');
+            }
+        });
+        
+        function forgotPassword() {
+            const username = document.getElementById('username').value || 'admin';
+            // VULNERABLE: Password hint reveals actual password
+            if (username === 'admin') {
+                showMessage('Password hint: Your password is a common word + 123', 'success');
+            } else {
+                showMessage('Password reset email sent (if account exists)', 'success');
+            }
+        }
+        
+        function resetAccount() {
+            // VULNERABLE: Account reset without proper verification
+            attempts = 0;
+            isLocked = false;
+            document.getElementById('attemptCount').textContent = '0';
+            showMessage('Account reset successful. You can try logging in again.', 'success');
+        }
+        
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vulnerable Login - SQL Injection Challenge</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .container { background: #f9f9f9; padding: 30px; border-radius: 8px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007cba; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
+        button:hover { background: #005a8b; }
+        .message { padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .hint { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Vulnerable Login System</h1>
+        <p>Welcome to the SQL Injection challenge! Try to login as an admin to get the flag.</p>
+        
+        <div id="message" class="message hidden"></div>
+        
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        
+        <div class="hint">
+            <h3>💡 Hints:</h3>
+            <ul>
+                <li><strong>Beginner:</strong> Try entering a single quote (') in the username field</li>
+                <li><strong>Intermediate:</strong> The admin username is 'admin'. Can you bypass the password?</li>
+                <li><strong>Advanced:</strong> Use SQL comments (--) to ignore the password check</li>
+            </ul>
+        </div>
+        
+        <div class="hint">
+            <h3>🎯 Objective:</h3>
+            <p>Login as admin to retrieve the flag. The flag format is: SKILLLAB{...}</p>
+        </div>
+    </div>
+
+    <script>
+        // Simulated database
+        const users = [
+            { username: 'admin', password: 'super_secret_password', role: 'admin' },
+            { username: 'guest', password: 'guest123', role: 'user' }
+        ];
+
+        const flag = 'SKILLLAB{sql_1nj3ct10n_m4st3r}';
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            
+            let message = '';
+            let isSuccess = false;
+
+            // VULNERABLE SQL SIMULATION - Shows how SQL injection works
+            // This simulates: SELECT * FROM users WHERE username = '$username' AND password = '$password'
+            
+            // Check for SQL injection patterns
+            if (username.includes("'")) {
+                // Simulate SQL injection success
+                if (username.includes('admin') && (username.includes('--') || username.includes('#'))) {
+                    message = `Welcome Admin! Here's your flag: ${flag}`;
+                    isSuccess = true;
+                } else if (username.toLowerCase().includes('or')) {
+                    message = `Welcome Admin! Here's your flag: ${flag}`;
+                    isSuccess = true;
+                } else {
+                    message = "SQL Error: You have an error in your SQL syntax";
+                }
+            } else {
+                // Normal login check
+                const user = users.find(u => u.username === username && u.password === password);
+                if (user) {
+                    if (user.role === 'admin') {
+                        message = `Welcome Admin! Here's your flag: ${flag}`;
+                        isSuccess = true;
+                    } else {
+                        message = `Welcome ${user.username}! You are logged in as a regular user.`;
+                    }
+                } else {
+                    message = "Invalid credentials!";
+                }
+            }
+
+            // Display message
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${isSuccess ? 'success' : 'error'}`;
+            messageDiv.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>

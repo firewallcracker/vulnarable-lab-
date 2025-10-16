@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>A05: Security Misconfiguration</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .container { background: #f9f9f9; padding: 30px; border-radius: 8px; }
+        .config-panel { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; border: 1px solid #ddd; }
+        .debug-info { background: #ffe6e6; padding: 15px; margin: 15px 0; border-radius: 4px; border: 1px solid #ff9999; font-family: monospace; font-size: 12px; }
+        button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .hint { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .hidden { display: none; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚙️ A05: Security Misconfiguration</h1>
+        <p>Application Configuration Panel</p>
+        
+        <div class="config-panel">
+            <h3>System Status</h3>
+            <p>Application: Running</p>
+            <p>Debug Mode: <span id="debugStatus">Enabled</span></p>
+            <p>Environment: Development</p>
+            <button onclick="toggleDebug()">Toggle Debug</button>
+            <button onclick="viewConfig()">View Configuration</button>
+        </div>
+        
+        <!-- VULNERABLE: Debug information exposed -->
+        <div id="debugPanel" class="debug-info">
+            <h4>🐛 Debug Information (Should be disabled in production!)</h4>
+            <pre>
+Environment Variables:
+- DB_PASSWORD=admin123
+- API_KEY=sk_live_abc123xyz789
+- SECRET_FLAG=SKILLLAB{m1sc0nf1gur4t10n_3xp0s3d}
+- DEBUG_MODE=true
+- ADMIN_TOKEN=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
+
+Server Configuration:
+- PHP Version: 8.1.0
+- MySQL Version: 8.0.28
+- Apache Version: 2.4.52
+- Error Reporting: ALL
+            </pre>
+        </div>
+        
+        <div class="config-panel">
+            <h3>Error Testing</h3>
+            <input type="text" id="testInput" placeholder="Enter test data...">
+            <button onclick="processData()">Process Data</button>
+            <div id="errorOutput"></div>
+        </div>
+        
+        <div class="hint">
+            <h3>💡 Hints:</h3>
+            <ul>
+                <li><strong>Beginner:</strong> Debug mode is enabled - look for exposed information</li>
+                <li><strong>Intermediate:</strong> Check environment variables and configuration details</li>
+                <li><strong>Advanced:</strong> Look for sensitive data in debug output</li>
+            </ul>
+        </div>
+        
+        <div class="hint">
+            <h3>🎯 Objective:</h3>
+            <p>Find the flag exposed through security misconfigurations. Check debug information!</p>
+        </div>
+    </div>
+
+    <script>
+        const flag = 'SKILLLAB{m1sc0nf1gur4t10n_3xp0s3d}';
+        let debugEnabled = true;
+        
+        function toggleDebug() {
+            debugEnabled = !debugEnabled;
+            const debugPanel = document.getElementById('debugPanel');
+            const debugStatus = document.getElementById('debugStatus');
+            
+            if (debugEnabled) {
+                debugPanel.style.display = 'block';
+                debugStatus.textContent = 'Enabled';
+                debugStatus.style.color = 'red';
+            } else {
+                debugPanel.style.display = 'none';
+                debugStatus.textContent = 'Disabled';
+                debugStatus.style.color = 'green';
+            }
+        }
+        
+        function viewConfig() {
+            // VULNERABLE: Exposing configuration details
+            alert(`Configuration Details:
+            
+Database: mysql://admin:admin123@localhost:3306/app
+Redis: redis://localhost:6379
+Secret Key: ${flag}
+JWT Secret: super_secret_jwt_key_123
+API Endpoint: https://api.internal.company.com
+            
+⚠️ This information should not be exposed!`);
+        }
+        
+        function processData() {
+            const input = document.getElementById('testInput').value;
+            const errorOutput = document.getElementById('errorOutput');
+            
+            if (!input) {
+                // VULNERABLE: Detailed error messages
+                errorOutput.innerHTML = `
+                    <div class="debug-info">
+                        <h4>Error Details:</h4>
+                        <pre>
+Fatal Error: Input validation failed
+Stack Trace:
+  at processData() line 42
+  at validateInput() line 67
+  at sanitizeData() line 89
+  
+Database Connection String: mysql://root:${flag.split('{')[1].split('}')[0]}@localhost
+Session ID: sess_abc123xyz789
+User Agent: ${navigator.userAgent}
+                        </pre>
+                    </div>
+                `;
+            } else {
+                errorOutput.innerHTML = '<p style="color: green;">Data processed successfully!</p>';
+            }
+        }
+        
+        // VULNERABLE: Exposed in global scope
+        window.getFlag = function() {
+            return flag;
+        };
+        
+        // VULNERABLE: Console logging sensitive data
+        console.log('Application started');
+        console.log('Debug mode: enabled');
+        console.log('Secret flag:', flag);
+        console.log('Database password: admin123');
+    </script>
+</body>
+</html>

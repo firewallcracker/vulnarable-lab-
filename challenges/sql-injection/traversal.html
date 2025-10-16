@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Directory Traversal Challenge</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .container { background: #f9f9f9; padding: 30px; border-radius: 8px; }
+        .file-list { background: white; padding: 15px; margin: 10px 0; border-radius: 4px; border: 1px solid #ddd; }
+        .file { padding: 5px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .file:hover { background: #f0f0f0; }
+        .content { background: #000; color: #0f0; padding: 15px; margin: 20px 0; border-radius: 4px; font-family: monospace; white-space: pre-wrap; }
+        .hint { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; margin-top: 20px; padding: 15px; border-radius: 4px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007cba; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📁 File Viewer - Directory Traversal</h1>
+        <p>View files in the current directory:</p>
+        
+        <div class="file-list">
+            <div class="file" onclick="viewFile('index.html')">📄 index.html</div>
+            <div class="file" onclick="viewFile('about.html')">📄 about.html</div>
+            <div class="file" onclick="viewFile('contact.html')">📄 contact.html</div>
+        </div>
+        
+        <p>Or enter a file path manually:</p>
+        <input type="text" id="filePath" placeholder="Enter file path...">
+        <button onclick="viewCustomFile()">View File</button>
+        
+        <div id="fileContent" class="content" style="display: none;"></div>
+        
+        <div class="hint">
+            <h3>💡 Hints:</h3>
+            <ul>
+                <li><strong>Beginner:</strong> Try: <code>../</code> to go up directories</li>
+                <li><strong>Intermediate:</strong> Look for: <code>../../../etc/passwd</code></li>
+                <li><strong>Advanced:</strong> Try: <code>../flag.txt</code> or <code>../../secret/flag.txt</code></li>
+            </ul>
+        </div>
+        
+        <div class="hint">
+            <h3>🎯 Objective:</h3>
+            <p>Use directory traversal to access files outside the web directory. Find the flag file!</p>
+        </div>
+    </div>
+
+    <script>
+        const flag = 'SKILLLAB{d1r3ct0ry_tr4v3rs4l}';
+        
+        const files = {
+            'index.html': '<html><head><title>Home</title></head><body><h1>Welcome!</h1></body></html>',
+            'about.html': '<html><head><title>About</title></head><body><h1>About Us</h1></body></html>',
+            'contact.html': '<html><head><title>Contact</title></head><body><h1>Contact Us</h1></body></html>',
+            '../flag.txt': flag,
+            '../../secret/flag.txt': flag,
+            '../../../etc/passwd': 'root:x:0:0:root:/root:/bin/bash\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin',
+            '../config.php': '<?php\n$db_password = "secret123";\n$admin_key = "' + flag + '";\n?>',
+            '../../backup/database.sql': 'CREATE TABLE users (id INT, username VARCHAR(50), password VARCHAR(50));\nINSERT INTO users VALUES (1, "admin", "' + flag + '");'
+        };
+        
+        function viewFile(filename) {
+            const contentDiv = document.getElementById('fileContent');
+            
+            if (files[filename]) {
+                contentDiv.textContent = files[filename];
+                contentDiv.style.display = 'block';
+            } else {
+                contentDiv.textContent = 'File not found: ' + filename;
+                contentDiv.style.display = 'block';
+            }
+        }
+        
+        function viewCustomFile() {
+            const filePath = document.getElementById('filePath').value;
+            const contentDiv = document.getElementById('fileContent');
+            
+            // Simulate directory traversal vulnerability
+            let normalizedPath = filePath.toLowerCase().trim();
+            
+            if (files[filePath]) {
+                contentDiv.textContent = files[filePath];
+                contentDiv.style.display = 'block';
+            } else if (normalizedPath.includes('../')) {
+                // Check for common traversal patterns
+                if (normalizedPath.includes('flag')) {
+                    contentDiv.textContent = flag;
+                    contentDiv.style.display = 'block';
+                } else if (normalizedPath.includes('passwd')) {
+                    contentDiv.textContent = files['../../../etc/passwd'];
+                    contentDiv.style.display = 'block';
+                } else if (normalizedPath.includes('config')) {
+                    contentDiv.textContent = files['../config.php'];
+                    contentDiv.style.display = 'block';
+                } else {
+                    contentDiv.textContent = 'Access denied or file not found: ' + filePath;
+                    contentDiv.style.display = 'block';
+                }
+            } else {
+                contentDiv.textContent = 'File not found: ' + filePath + '\n\nTry using ../ to navigate directories!';
+                contentDiv.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
