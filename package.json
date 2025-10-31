@@ -4,7 +4,7 @@
   "scripts": {
     "install-all": "cd backend && npm install && cd ../frontend && npm install",
     "postinstall": "npm run install-all && npm run build",
-    "build": "cd frontend && cross-env NODE_ENV=production REACT_APP_API_URL=$RENDER_EXTERNAL_URL npm run build",
+    "build": "cd frontend && cross-env NODE_ENV=production REACT_APP_API_URL=https://vulnarable-lab.onrender.com npm run build",
     "start": "npm run start-backend",
     "start-backend": "cd backend && npm start",
     "start-frontend": "cd frontend && npm start",
