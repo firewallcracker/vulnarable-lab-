@@ -20,6 +20,78 @@ const db = {
       difficulty: 'Beginner',
       flag: 'SKILLLAB{br0k3n_4cc3ss_c0ntr0l}',
       owasp: 'A01:2021'
+    },
+    {
+      id: 2,
+      name: 'A02: Cryptographic Failures',
+      description: 'Exploit weak cryptographic implementations',
+      difficulty: 'Intermediate',
+      flag: 'SKILLLAB{cr7pt0_f41lur3s_pwn3d}',
+      owasp: 'A02:2021'
+    },
+    {
+      id: 3,
+      name: 'A03: Injection (SQL)',
+      description: 'Learn to exploit SQL injection vulnerabilities',
+      difficulty: 'Beginner',
+      flag: 'SKILLLAB{sql_1nj3ct10n_m4st3r}',
+      owasp: 'A03:2021'
+    },
+    {
+      id: 4,
+      name: 'A04: Insecure Design',
+      description: 'Exploit flaws in application design and architecture',
+      difficulty: 'Advanced',
+      flag: 'SKILLLAB{1ns3cur3_d3s1gn_fl4w}',
+      owasp: 'A04:2021'
+    },
+    {
+      id: 5,
+      name: 'A05: Security Misconfiguration',
+      description: 'Find and exploit security misconfigurations',
+      difficulty: 'Intermediate',
+      flag: 'SKILLLAB{m1sc0nf1gur4t10n_3xp0s3d}',
+      owasp: 'A05:2021'
+    },
+    {
+      id: 6,
+      name: 'A06: Vulnerable Components',
+      description: 'Exploit known vulnerabilities in third-party components',
+      difficulty: 'Advanced',
+      flag: 'SKILLLAB{vuln3r4bl3_c0mp0n3nts}',
+      owasp: 'A06:2021'
+    },
+    {
+      id: 7,
+      name: 'A07: Authentication Failures',
+      description: 'Bypass authentication mechanisms',
+      difficulty: 'Beginner',
+      flag: 'SKILLLAB{4uth3nt1c4t10n_byp4ss}',
+      owasp: 'A07:2021'
+    },
+    {
+      id: 8,
+      name: 'A08: Software Integrity Failures',
+      description: 'Exploit software and data integrity failures',
+      difficulty: 'Advanced',
+      flag: 'SKILLLAB{1nt3gr1ty_f41lur3_pwn}',
+      owasp: 'A08:2021'
+    },
+    {
+      id: 9,
+      name: 'A09: Logging Failures',
+      description: 'Exploit insufficient logging and monitoring',
+      difficulty: 'Intermediate',
+      flag: 'SKILLLAB{l0gg1ng_f41lur3s_h1dd3n}',
+      owasp: 'A09:2021'
+    },
+    {
+      id: 10,
+      name: 'A10: Server-Side Request Forgery',
+      description: 'Perform SSRF attacks against internal services',
+      difficulty: 'Advanced',
+      flag: 'SKILLLAB{ssrf_1nt3rn4l_4cc3ss}',
+      owasp: 'A10:2021'
     }
   ],
   labs: [],
@@ -119,9 +191,72 @@ app.get('/api/challenges', auth, (req, res) => {
   }
 });
 
+// Lab routes
+app.post('/api/labs/start', auth, (req, res) => {
+  try {
+    const { challengeId } = req.body;
+    console.log('Starting lab:', { challengeId, user: req.user });
+    
+    const challenge = db.challenges.find(c => c.id === challengeId);
+    if (!challenge) {
+      return res.status(404).json({ error: 'Challenge not found' });
+    }
+
+    const labId = uuidv4();
+    const lab = {
+      id: nextLabId++,
+      userId: req.user.userId,
+      challengeId,
+      labId,
+      active: true,
+      createdAt: new Date()
+    };
+    
+    db.labs.push(lab);
+    
+    // Generate lab URL with the correct domain
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://vulnarable-lab.onrender.com'
+      : 'http://localhost:3001';
+
+    const labUrl = `${baseUrl}/challenge/${challenge.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}.html?lab=${labId}`;
+    
+    console.log('Lab started:', { labId, labUrl });
+    res.json({ labUrl, labId });
+  } catch (error) {
+    console.error('Lab start error:', error);
+    res.status(500).json({ error: 'Failed to start lab' });
+  }
+});
+
+app.post('/api/labs/stop', auth, (req, res) => {
+  try {
+    const { challengeId } = req.body;
+    console.log('Stopping lab:', { challengeId, user: req.user });
+    
+    const lab = db.labs.find(l => 
+      l.userId === req.user.userId && 
+      l.challengeId === challengeId && 
+      l.active
+    );
+    
+    if (lab) {
+      lab.active = false;
+      console.log('Lab stopped:', { labId: lab.labId });
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Lab stop error:', error);
+    res.status(500).json({ error: 'Failed to stop lab' });
+  }
+});
+
 // Handle React routing, return all requests to React app
-app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    next();
+  } else {
     res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
   }
 });
