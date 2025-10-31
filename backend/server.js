@@ -274,6 +274,57 @@ app.post('/api/labs/stop', auth, (req, res) => {
   }
 });
 
+// Progress tracking
+app.get('/api/progress', auth, (req, res) => {
+  try {
+    const userSubmissions = db.submissions.filter(s => s.userId === req.user.userId);
+    const completedChallenges = [...new Set(userSubmissions.map(s => s.challengeId))];
+    const totalChallenges = db.challenges.length;
+    const completedCount = completedChallenges.length;
+    const progressPercentage = Math.round((completedCount / totalChallenges) * 100);
+
+    res.json({
+      completedChallenges,
+      completedCount,
+      totalChallenges,
+      progressPercentage
+    });
+  } catch (error) {
+    console.error('Progress error:', error);
+    res.status(500).json({ error: 'Failed to fetch progress' });
+  }
+});
+
+// Submission endpoint
+app.post('/api/submit', auth, async (req, res) => {
+  try {
+    const { challengeId, flag } = req.body;
+    const challenge = db.challenges.find(c => c.id === challengeId);
+    
+    if (!challenge) {
+      return res.status(404).json({ message: 'Challenge not found' });
+    }
+
+    const correct = flag === challenge.flag;
+    if (correct) {
+      db.submissions.push({
+        userId: req.user.userId,
+        challengeId,
+        timestamp: new Date(),
+        correct
+      });
+    }
+
+    res.json({ 
+      message: correct ? 'Congratulations! Flag is correct!' : 'Incorrect flag, try again!',
+      correct
+    });
+  } catch (error) {
+    console.error('Submission error:', error);
+    res.status(500).json({ error: 'Submission failed' });
+  }
+});
+
 // Handle React routing, return all requests to React app
 app.get('*', (req, res, next) => {
   console.log('Catch-all route hit:', req.path);
