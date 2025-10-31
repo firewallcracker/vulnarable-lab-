@@ -161,7 +161,10 @@ function App() {
 
       {activeLab ? (
         <div className="active-lab">
-          <h2>Active Lab</h2>
+          <div className="lab-header">
+            <h2>Active Lab</h2>
+            <button className="back-button" onClick={() => setActiveLab(null)}>← Back to Challenges</button>
+          </div>
           <p>Challenge URL: <a href={activeLab.labUrl} target="_blank" rel="noopener noreferrer">{activeLab.labUrl}</a></p>
           <div className="flag-submission">
             <input 
