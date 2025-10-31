@@ -116,6 +116,12 @@ app.use('/challenge', (req, res, next) => {
   next();
 }, express.static(path.join(__dirname, '../challenges/sql-injection')));
 
+// In production, use /lab path for challenge files
+app.use('/lab', (req, res, next) => {
+  console.log('Lab file requested:', req.path);
+  next();
+}, express.static(path.join(__dirname, '../challenges/sql-injection')));
+
 // Serve static files from frontend build
 app.use(express.static(path.join(__dirname, '../frontend/build')));
 
@@ -222,7 +228,7 @@ app.post('/api/labs/start', auth, (req, res) => {
       ? 'https://vulnarable-lab.onrender.com'
       : 'http://localhost:3001';
 
-    // Map challenge IDs to their corresponding HTML files
+    // Map challenge IDs to their corresponding paths in challenges/sql-injection directory
     const challengeFiles = {
       1: 'access-control.html',
       2: 'crypto-failures.html',
@@ -241,7 +247,10 @@ app.post('/api/labs/start', auth, (req, res) => {
       throw new Error(`No HTML file mapped for challenge ID ${challengeId}`);
     }
 
-    const labUrl = `${baseUrl}/challenge/${htmlFile}?lab=${labId}`;
+    // For production, use a separate URL path to distinguish lab pages
+    const labUrl = process.env.NODE_ENV === 'production'
+      ? `${baseUrl}/lab/${htmlFile}?lab=${labId}`
+      : `${baseUrl}/challenge/${htmlFile}?lab=${labId}`;
     
     console.log('Lab started:', { labId, labUrl });
     res.json({ labUrl, labId });
