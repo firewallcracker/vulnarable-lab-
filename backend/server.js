@@ -8,6 +8,7 @@ const path = require('path');
 const app = express();
 
 // In-memory database for demo - OWASP Top 10 2021
+console.log('Initializing database...');
 const db = {
   users: [],
   challenges: [
@@ -118,16 +119,28 @@ app.get('*', function(req, res) {
 const JWT_SECRET = 'demo-secret-key';
 
 const auth = (req, res, next) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-  console.log('Auth middleware - Token:', token);
-  if (!token) return res.status(401).json({ error: 'No token' });
   try {
-    req.user = jwt.verify(token, JWT_SECRET);
-    console.log('Auth middleware - Verified user:', req.user);
+    console.log('Auth middleware - Headers:', req.headers);
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    console.log('Auth middleware - Token:', token);
+    console.log('Auth middleware - JWT_SECRET:', JWT_SECRET);
+    
+    if (!token) {
+      console.log('Auth middleware - No token provided');
+      return res.status(401).json({ error: 'No token' });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('Auth middleware - Decoded token:', decoded);
+    req.user = decoded;
     next();
   } catch (error) { 
-    console.error('Auth middleware - Token verification failed:', error.message);
-    res.status(401).json({ error: 'Invalid token' }); 
+    console.error('Auth middleware - Token verification failed:', {
+      errorMessage: error.message,
+      errorName: error.name,
+      stack: error.stack
+    });
+    res.status(401).json({ error: `Invalid token: ${error.message}` }); 
   }
 };
 
@@ -153,9 +166,29 @@ app.post('/api/login', async (req, res) => {
   } else res.status(401).json({ error: 'Invalid credentials' });
 });
 
+// Debug endpoint to check DB state
+app.get('/api/debug/db-state', (req, res) => {
+  console.log('Current DB State:', {
+    usersCount: db.users.length,
+    challengesCount: db.challenges.length,
+    users: db.users.map(u => ({ id: u.id, username: u.username }))
+  });
+  res.json({
+    usersCount: db.users.length,
+    challengesCount: db.challenges.length
+  });
+});
+
 // Challenge routes
 app.get('/api/challenges', auth, (req, res) => {
   console.log('GET /api/challenges - User:', req.user);
+  console.log('Current challenges in DB:', db.challenges.length);
+  
+  if (!db.challenges || db.challenges.length === 0) {
+    console.error('No challenges found in database');
+    return res.status(404).json({ error: 'No challenges available' });
+  }
+
   const challenges = db.challenges.map(c => ({ 
     id: c.id, 
     name: c.name, 
@@ -163,6 +196,7 @@ app.get('/api/challenges', auth, (req, res) => {
     difficulty: c.difficulty,
     owasp: c.owasp
   }));
+  
   console.log('Sending challenges:', challenges);
   res.json(challenges);
 });
@@ -279,4 +313,10 @@ app.get('/api/admin/labs', auth, (req, res) => {
   res.json(activeLabs);
 });
 
-app.listen(3001, () => console.log('Server running on port 3001'));
+app.listen(3001, () => {
+  console.log('Server running on port 3001');
+  console.log('Database initialized with:', {
+    usersCount: db.users.length,
+    challengesCount: db.challenges.length
+  });
+});
