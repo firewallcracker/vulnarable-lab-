@@ -9,12 +9,11 @@ const app = express();
 
 // In-memory database for demo - OWASP Top 10 2021
 console.log('Initializing database...');
-const db = {
-  users: [],
-  challenges: [
-    {
-      id: 1,
-      name: 'A01: Broken Access Control',
+// Initialize default challenges
+const defaultChallenges = [
+  {
+    id: 1,
+    name: 'A01: Broken Access Control',
       description: 'Bypass access controls to access unauthorized functionality',
       difficulty: 'Beginner',
       flag: 'SKILLLAB{br0k3n_4cc3ss_c0ntr0l}',
@@ -94,14 +93,35 @@ const db = {
     }
   ],
   labs: [],
+  ]
+
+// Initialize the database with persistent challenges
+const db = {
+  users: [],
+  challenges: [...defaultChallenges], // Make a copy of default challenges
+  labs: [],
   submissions: []
 };
+
+// Ensure we have challenges
+if (!db.challenges || db.challenges.length === 0) {
+  console.log('No challenges found, initializing with defaults...');
+  db.challenges = [...defaultChallenges];
+}
+
+console.log('Database initialized with', db.challenges.length, 'challenges');
 
 let nextUserId = 1;
 let nextLabId = 1;
 
 app.use(cors());
 app.use(express.json());
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
 // Serve challenge files
 app.use('/challenge', express.static(path.join(__dirname, '../challenges/sql-injection')));
@@ -184,9 +204,25 @@ app.get('/api/challenges', auth, (req, res) => {
   console.log('GET /api/challenges - User:', req.user);
   console.log('Current challenges in DB:', db.challenges.length);
   
+  // Ensure challenges exist
   if (!db.challenges || db.challenges.length === 0) {
-    console.error('No challenges found in database');
-    return res.status(404).json({ error: 'No challenges available' });
+    console.log('Reinitializing challenges...');
+    db.challenges = [
+      {
+        id: 1,
+        name: 'A01: Broken Access Control',
+        description: 'Bypass access controls to access unauthorized functionality',
+        difficulty: 'Beginner',
+        owasp: 'A01:2021'
+      },
+      {
+        id: 2,
+        name: 'A02: Cryptographic Failures',
+        description: 'Exploit weak cryptographic implementations',
+        difficulty: 'Intermediate',
+        owasp: 'A02:2021'
+      }
+    ];
   }
 
   const challenges = db.challenges.map(c => ({ 
