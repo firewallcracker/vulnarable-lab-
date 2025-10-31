@@ -119,11 +119,16 @@ const JWT_SECRET = 'demo-secret-key';
 
 const auth = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
+  console.log('Auth middleware - Token:', token);
   if (!token) return res.status(401).json({ error: 'No token' });
   try {
     req.user = jwt.verify(token, JWT_SECRET);
+    console.log('Auth middleware - Verified user:', req.user);
     next();
-  } catch { res.status(401).json({ error: 'Invalid token' }); }
+  } catch (error) { 
+    console.error('Auth middleware - Token verification failed:', error.message);
+    res.status(401).json({ error: 'Invalid token' }); 
+  }
 };
 
 // Auth routes
@@ -150,7 +155,16 @@ app.post('/api/login', async (req, res) => {
 
 // Challenge routes
 app.get('/api/challenges', auth, (req, res) => {
-  res.json(db.challenges.map(c => ({ id: c.id, name: c.name, description: c.description, difficulty: c.difficulty })));
+  console.log('GET /api/challenges - User:', req.user);
+  const challenges = db.challenges.map(c => ({ 
+    id: c.id, 
+    name: c.name, 
+    description: c.description, 
+    difficulty: c.difficulty,
+    owasp: c.owasp
+  }));
+  console.log('Sending challenges:', challenges);
+  res.json(challenges);
 });
 
 app.post('/api/labs/start', auth, (req, res) => {

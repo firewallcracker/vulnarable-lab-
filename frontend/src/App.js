@@ -28,13 +28,21 @@ function App() {
 
   const loadChallenges = async () => {
     try {
+      const token = localStorage.getItem('token');
+      console.log('Loading challenges with token:', token);
       const response = await axios.get(`${API_URL}/api/challenges`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('Challenges response:', response.data);
       setChallenges(response.data);
-      loadProgress();
+      await loadProgress();
     } catch (error) {
-      console.error('Failed to load challenges');
+      console.error('Failed to load challenges:', error.response?.data || error.message);
+      if (error.response?.status === 401) {
+        console.log('Auth token might be invalid, clearing...');
+        localStorage.removeItem('token');
+        setUser(null);
+      }
     }
   };
 
@@ -62,12 +70,17 @@ function App() {
 
   const register = async (username, password) => {
     try {
+      console.log('Attempting registration...');
       const response = await axios.post(`${API_URL}/api/register`, { username, password });
+      console.log('Registration successful:', response.data);
       localStorage.setItem('token', response.data.token);
       setUser({ username: response.data.username });
-      loadChallenges();
+      console.log('Loading challenges...');
+      await loadChallenges();
+      console.log('Challenges loaded');
     } catch (error) {
-      setMessage('Registration failed');
+      console.error('Registration error:', error.response?.data || error.message);
+      setMessage('Registration failed: ' + (error.response?.data?.error || error.message));
     }
   };
 
