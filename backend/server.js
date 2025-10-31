@@ -110,8 +110,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve challenge files
-app.use('/challenge', express.static(path.join(__dirname, '../challenges/sql-injection')));
+// Serve challenge files - make sure this comes before the frontend static files
+app.use('/challenge', (req, res, next) => {
+  console.log('Challenge file requested:', req.path);
+  next();
+}, express.static(path.join(__dirname, '../challenges/sql-injection')));
 
 // Serve static files from frontend build
 app.use(express.static(path.join(__dirname, '../frontend/build')));
@@ -214,12 +217,31 @@ app.post('/api/labs/start', auth, (req, res) => {
     
     db.labs.push(lab);
     
-    // Generate lab URL with the correct domain
+    // Generate lab URL with the correct domain and file name
     const baseUrl = process.env.NODE_ENV === 'production' 
       ? 'https://vulnarable-lab.onrender.com'
       : 'http://localhost:3001';
 
-    const labUrl = `${baseUrl}/challenge/${challenge.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}.html?lab=${labId}`;
+    // Map challenge IDs to their corresponding HTML files
+    const challengeFiles = {
+      1: 'access-control.html',
+      2: 'crypto-failures.html',
+      3: 'sql-injection.html',
+      4: 'insecure-design.html',
+      5: 'misconfiguration.html',
+      6: 'vulnerable-components.html',
+      7: 'auth-failures.html',
+      8: 'integrity-failures.html',
+      9: 'logging-failures.html',
+      10: 'ssrf.html'
+    };
+
+    const htmlFile = challengeFiles[challengeId];
+    if (!htmlFile) {
+      throw new Error(`No HTML file mapped for challenge ID ${challengeId}`);
+    }
+
+    const labUrl = `${baseUrl}/challenge/${htmlFile}?lab=${labId}`;
     
     console.log('Lab started:', { labId, labUrl });
     res.json({ labUrl, labId });
@@ -254,11 +276,20 @@ app.post('/api/labs/stop', auth, (req, res) => {
 
 // Handle React routing, return all requests to React app
 app.get('*', (req, res, next) => {
+  console.log('Catch-all route hit:', req.path);
+  
+  // Skip API routes
   if (req.path.startsWith('/api')) {
-    next();
-  } else {
-    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+    return next();
   }
+  
+  // Skip challenge files
+  if (req.path.startsWith('/challenge/')) {
+    return next();
+  }
+  
+  // Serve React app for all other routes
+  res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
 
 app.listen(3001, () => {
