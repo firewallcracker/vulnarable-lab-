@@ -105,6 +105,16 @@ app.use(express.json());
 // Serve challenge files
 app.use('/challenge', express.static(path.join(__dirname, '../challenges/sql-injection')));
 
+// Serve static files from frontend build
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+// Handle React routing, return all requests to React app
+app.get('*', function(req, res) {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+  }
+});
+
 const JWT_SECRET = 'demo-secret-key';
 
 const auth = (req, res, next) => {
